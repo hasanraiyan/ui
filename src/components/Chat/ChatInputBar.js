@@ -16,34 +16,41 @@ export default function ChatInputBar({ onSend }) {
 
   const requestPermissions = async () => {
     if (Platform.OS !== 'web') {
+      // Use specific permission request for newer Expo SDKs/iOS versions if needed
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permission required', 'Sorry, we need camera roll permissions to make this work!');
         return false;
       }
+       // Optional: Request camera permissions if you add a camera option
+       // const { cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+       // if (cameraStatus !== 'granted') { ... }
       return true;
     }
-    return true; // No permissions needed for web
+    return true; // No permissions needed for web usually
   };
 
   const handleAttachPress = async () => {
     const hasPermission = await requestPermissions();
     if (!hasPermission) return;
 
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true, // Optional: allow editing
-      aspect: [4, 3], // Optional: aspect ratio
-      quality: 0.8, // Reduce quality slightly to manage Base64 size
-       // **IMPORTANT: Base64 is requested here, but we primarily use the URI for the flow**
-       // We'll read the file content again using FileSystem just before sending if needed
-       // Base64 from picker can sometimes be unreliable or very large.
-      // base64: true,
-    });
+    try {
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [4, 3],
+          quality: 0.8, // Reduce quality slightly for faster uploads
+          // base64: false, // Don't include base64 unless absolutely necessary
+        });
 
-    if (!result.canceled) {
-      setSelectedImageUri(result.assets[0].uri);
-      setText(''); // Clear text when image is selected (optional behavior)
+        // Check if cancelled and access assets array (newer SDKs)
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          setSelectedImageUri(result.assets[0].uri);
+          // setText(''); // Optional: Clear text when image is selected
+        }
+    } catch (error) {
+        console.error("Image Picker Error:", error);
+        Alert.alert("Image Error", "Could not select image. Please try again.");
     }
   };
 
@@ -51,9 +58,9 @@ export default function ChatInputBar({ onSend }) {
     setSelectedImageUri(null);
   };
 
-  const handleSend = () => {
+  const handleSendPress = () => {
     if (selectedImageUri) {
-      // Pass the local URI, ChatScreen will handle Base64 conversion
+      // Pass the local URI, ChatScreen will handle upload/sending
       onSend({ type: 'image', uri: selectedImageUri, text: text.trim() });
       setSelectedImageUri(null);
       setText('');
@@ -61,6 +68,7 @@ export default function ChatInputBar({ onSend }) {
       onSend({ type: 'text', text: text.trim() });
       setText('');
     }
+     // Don't dismiss keyboard here, ChatScreen handles it
   };
 
   return (
@@ -72,6 +80,8 @@ export default function ChatInputBar({ onSend }) {
           <TouchableOpacity onPress={handleRemoveImage} style={styles.removeButton}>
             <Ionicons name="close-circle" size={24} color={theme.colors.muted || '#888'} />
           </TouchableOpacity>
+          {/* Optional: Show caption input clearly */}
+           <Text style={styles.previewCaptionHint}>Image selected</Text>
         </View>
       )}
       {/* Input Bar */}
@@ -81,15 +91,16 @@ export default function ChatInputBar({ onSend }) {
          </TouchableOpacity>
         <TextInput
           style={styles.input}
-          placeholder={selectedImageUri ? "Add a caption..." : "Type a message..."}
+          placeholder={selectedImageUri ? "Add an optional caption..." : "Type a message..."}
           value={text}
           onChangeText={setText}
-          onSubmitEditing={handleSend} // Only triggers send on keyboard 'send' if no image
-          returnKeyType="send"
+          // onSubmitEditing={handleSendPress} // Trigger send on keyboard 'send' only if no image? Might be confusing.
+          returnKeyType="default" // Change to default or next if needed elsewhere
           blurOnSubmit={false} // Keep keyboard open potentially
           multiline // Allow multiline input
+          maxHeight={120} // Prevent input from growing too large
         />
-        <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
+        <TouchableOpacity onPress={handleSendPress} style={styles.sendButton} disabled={!text.trim() && !selectedImageUri}>
           <Ionicons name="send" size={24} color={theme.colors.primary || '#4F8EF7'} />
         </TouchableOpacity>
       </View>
@@ -103,48 +114,58 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: theme.colors.background, // Match input bg
     borderTopWidth: 1,
-    borderColor: '#eee',
+    borderColor: theme.colors.border, // Match border
   },
   previewImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
-    marginRight: 10,
+    width: 40, // Smaller preview
+    height: 40,
+    borderRadius: 6,
+    marginRight: 8,
   },
+   previewCaptionHint: {
+       fontSize: 12,
+       color: theme.colors.muted,
+       flex: 1, // Take remaining space
+   },
   removeButton: {
     position: 'absolute',
-    top: 0,
-    left: 45, // Adjust position overlap
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    top: -5, // Adjust position
+    left: 30,
+    backgroundColor: 'rgba(255,255,255,0.8)',
     borderRadius: 12,
+    padding: 1, // Add padding for easier tap target
   },
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'center', // Align items vertically, esp. for multiline input
     paddingHorizontal: 8,
-    paddingVertical: 10, // Adjust padding for potentially taller input
+    paddingVertical: Platform.OS === 'ios' ? 10 : 6, // Adjust vertical padding per platform
     borderTopWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#fff',
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.card, // Or background
   },
    attachButton: {
-    paddingHorizontal: 8, // Add some padding
+    padding: 8, // Easier tap target
    },
   input: {
     flex: 1,
-    minHeight: 40, // Minimum height
-    maxHeight: 120, // Max height before scrolling
-    borderColor: '#ccc',
+    borderColor: theme.colors.border,
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 20, // Rounded corners
     paddingHorizontal: 16,
-    paddingVertical: 10, // Adjust for multiline
+    paddingTop: Platform.OS === 'ios' ? 10 : 8, // Adjust padding top for diff platforms
+    paddingBottom: Platform.OS === 'ios' ? 10 : 8,
     marginHorizontal: 8,
     fontSize: 16,
+    fontFamily: theme.typography.bodyFontFamily,
+    color: theme.colors.text,
+    backgroundColor: theme.colors.background, // Inner input background
+     minHeight: 44, // Good minimum height
+     maxHeight: 120,
   },
   sendButton: {
-    padding: 6,
+    padding: 8, // Easier tap target
   },
 });
