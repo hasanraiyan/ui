@@ -13,11 +13,8 @@ export default function SplashScreen({ navigation }) {
         const userSession = await storage.get('userSession'); 
 
         if (userSession && userSession.token) {
-
           dispatch(login(userSession.user)); 
-        } else {
-          navigation.replace('Login'); 
-        }
+        } 
       } catch (error) {
         console.error('Error checking auth status:', error);
         navigation.replace('Login');

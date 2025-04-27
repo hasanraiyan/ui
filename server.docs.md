@@ -677,3 +677,5 @@ Mongoose models define the structure of data stored in MongoDB. All models autom
 *   When a tool is called, the backend executes the corresponding action and sends the result back to the AI for a final response.
 *   **Verify API Response:** The implementation checks for `function_call`. Confirm if the specific Pollinations endpoint returns this or the newer `tool_calls` format and adjust `routes/chat.js` if needed.
 *   The `POST /api/planner/ai` endpoint is simpler and just returns the raw AI text suggestion without automatic task creation or tool use.
+
+
