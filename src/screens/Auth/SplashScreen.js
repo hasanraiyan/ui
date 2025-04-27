@@ -10,25 +10,22 @@ export default function SplashScreen({ navigation }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const userSession = await storage.get('userSession'); 
-
+        const userSession = await storage.get('userSession');
         if (userSession && userSession.token) {
-          dispatch(login(userSession.user)); 
-        } 
+          dispatch(login(userSession.user));
+        } else {
+          navigation.replace('Login');
+        }
       } catch (error) {
         console.error('Error checking auth status:', error);
         navigation.replace('Login');
       }
     };
-
-    const timer = setTimeout(() => {
-        checkAuth();
-    }, 1500); 
-
-    return () => clearTimeout(timer); 
-
+  
+    const timer = setTimeout(checkAuth, 1500);
+    return () => clearTimeout(timer);
   }, [dispatch, navigation]);
-
+  
   return (
     <View style={styles.container}>
       <ActivityIndicator size="large" color="#4F8EF7" />

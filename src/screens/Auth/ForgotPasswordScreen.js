@@ -1,22 +1,44 @@
+// FILE: src/screens/Auth/ForgotPasswordScreen.js
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import * as authService from '../../services/authService'; // Import service directly
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Image,
+} from 'react-native';
+import * as authService from '../../services/authService';
 import InputField from '../../components/common/InputField';
 import Button from '../../components/common/Button';
 import ErrorMessage from '../../components/common/ErrorMessage';
-import LoadingIndicator from '../../components/common/LoadingIndicator';
-import { routes } from '../../constants';
-import colors from '../../constants/colors';
+// Removed LoadingIndicator import
+import { routes, theme } from '../../constants';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Define SuccessMessage component locally or import if common
+const SuccessMessage = ({ message }) => {
+    if (!message) return null;
+    return (
+        <View style={styles.successContainer}>
+             {/* Optional Icon */}
+            <Text style={styles.successText}>{message}</Text>
+        </View>
+    );
+}
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Use local loading state
-  const [error, setError] = useState(null); // Use local error state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
   const handleForgotPassword = async () => {
     if (!email) {
-      Alert.alert('Validation Error', 'Please enter your email address.');
+      setError('Please enter your email address.'); // Set local error state
       return;
     }
     setIsLoading(true);
@@ -24,95 +46,144 @@ export default function ForgotPasswordScreen({ navigation }) {
     setSuccessMessage('');
 
     try {
-      // Call the service function directly
       const response = await authService.forgotPassword(email);
-      setSuccessMessage(response.data.message); // Show success message from API
-      Alert.alert('Request Sent', response.data.message);
+      setSuccessMessage(response.data.message);
+      // Keep Alert for now, or replace with the inline SuccessMessage completely
+      // Alert.alert('Request Sent', response.data.message);
     } catch (err) {
-      const message = err.message || 'Failed to send reset link. Please try again.';
+      const message = err.message || 'Failed to send reset link. Please check the email or try again.';
       setError(message);
-      Alert.alert('Error', message);
+      // Alert.alert('Error', message); // Error displayed by ErrorMessage component
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Forgot Password</Text>
-      <Text style={styles.subtitle}>
-        Enter your email address below and we'll send you a link to reset your password.
-      </Text>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+           {/* <Image
+            // source={require('../../../assets/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          /> */}
 
-      {/* Show local error or success message */}
-      <ErrorMessage message={error} />
-      {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
+          <Text style={styles.title}>Reset Password</Text>
+          <Text style={styles.subtitle}>
+            Enter your email below, and we'll send you instructions to reset your password.
+          </Text>
 
-      <InputField
-        placeholder="Email"
-        value={email}
-        onChangeText={(text) => {
-            setEmail(text);
-            setError(null); // Clear error on input change
-            setSuccessMessage('');
-        }}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoComplete="email"
-      />
+          <ErrorMessage message={error} containerStyle={styles.messageContainer} />
+          <SuccessMessage message={successMessage} />
 
-      {isLoading ? (
-        <LoadingIndicator size="small" style={styles.loading} />
-      ) : (
-         <Button title="Send Reset Link" onPress={handleForgotPassword} disabled={isLoading} style={styles.button} />
-      )}
+          <InputField
+            label="Email"
+            placeholder="Enter your registered email"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              setError(null); // Clear error on input change
+              setSuccessMessage(''); // Clear success on input change
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            returnKeyType="done"
+            onSubmitEditing={handleForgotPassword}
+            error={!!error} // Pass error state to InputField if needed for border styling
+            containerStyle={styles.inputField}
+          />
 
-      <TouchableOpacity onPress={() => !isLoading && navigation.navigate(routes.Login)}>
-        <Text style={styles.link}>Back to Login</Text>
-      </TouchableOpacity>
-    </View>
+          <Button
+             title="Send Instructions"
+             onPress={handleForgotPassword}
+             isLoading={isLoading}
+             style={styles.button}
+             />
+
+          <TouchableOpacity
+             style={styles.backLinkContainer}
+             onPress={() => !isLoading && navigation.navigate(routes.Login)}>
+            <Text style={styles.link}>Back to Login</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
+// Use similar styles as LoginScreen, adjusting where necessary
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: colors.background,
+    padding: theme.spacing.xl,
+  },
+   logo: {
+    width: 100,
+    height: 100,
+    marginBottom: theme.spacing.lg,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: colors.primary,
+    fontFamily: theme.typography.headingFontFamily,
+    fontSize: theme.typography.h2Size,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.md, // Less space before subtitle
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: colors.muted,
+    fontFamily: theme.typography.bodyFontFamily,
+    fontSize: theme.typography.bodySize,
+    color: theme.colors.muted,
     textAlign: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 10,
+    marginBottom: theme.spacing.xl, // Space before messages/input
+    paddingHorizontal: theme.spacing.sm,
+  },
+  messageContainer: {
+      marginBottom: theme.spacing.md, // Ensure space below error/success message
+  },
+   successContainer: {
+    marginBottom: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    backgroundColor: `${theme.colors.success}20`, // Light green background
+    borderRadius: theme.borderRadius.md,
+    width: '100%',
+    alignItems: 'center',
+  },
+  successText: {
+    color: theme.colors.success, // Use theme success color
+    fontSize: theme.typography.smallSize,
+    fontFamily: theme.typography.bodyFontFamily,
+    textAlign: 'center',
+  },
+  inputField: {
+    marginBottom: theme.spacing.lg,
   },
   button: {
     width: '100%',
-    marginTop: 8,
-    marginBottom: 16,
+    marginTop: theme.spacing.sm, // Reduced margin top
+    marginBottom: theme.spacing.lg,
+  },
+  backLinkContainer: {
+     marginTop: theme.spacing.md,
   },
   link: {
-    color: colors.primary,
-    marginTop: 12,
-    fontSize: 16,
+    color: theme.colors.primary,
+    fontFamily: theme.typography.bodyFontFamily,
+    fontSize: theme.typography.smallSize,
+    textAlign: 'center',
   },
-  loading: {
-    marginVertical: 20,
-  },
-  successText: {
-      color: 'green',
-      fontSize: 16,
-      marginBottom: 12,
-      textAlign: 'center',
-  }
 });

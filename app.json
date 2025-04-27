@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,20 +17,23 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
       "splash": {
-        "backgroundColor": "#ffffff",    
+        "backgroundColor": "#ffffff",
         "resizeMode": "contain"
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png"
     },
     "extra": {
       "API_BASE_URL": "https://d-server-78cu.onrender.com/api"
     },
-    "scheme": "dostify"
+    "scheme": "dostify",
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

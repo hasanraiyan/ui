@@ -1,138 +1,188 @@
+// FILE: src/screens/Auth/PasswordResetScreen.js
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import * as authService from '../../services/authService'; // Import service directly
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Image,
+} from 'react-native';
+import * as authService from '../../services/authService';
 import InputField from '../../components/common/InputField';
 import Button from '../../components/common/Button';
 import ErrorMessage from '../../components/common/ErrorMessage';
-import LoadingIndicator from '../../components/common/LoadingIndicator';
-import { routes } from '../../constants';
-import colors from '../../constants/colors';
-
-// This screen expects the reset token to be passed via navigation params
-// e.g., navigation.navigate(routes.PasswordReset, { token: 'reset_token_from_email' })
-// You'll need to set up deep linking to handle opening this screen from an email link.
+import { routes, theme } from '../../constants';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PasswordResetScreen({ navigation, route }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Use local state
-  const [error, setError] = useState(null); // Use local state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Get the token from route params
   const token = route.params?.token;
 
   const handleResetPassword = async () => {
+    setError(null); // Clear previous errors
+
     if (!token) {
-      setError('Password reset token is missing or invalid. Please request a new link.');
-      Alert.alert('Error', 'Password reset token is missing or invalid.');
+      setError('Password reset link is invalid or missing. Please request a new one.');
       return;
     }
     if (!password || !confirmPassword) {
-      Alert.alert('Validation Error', 'Please enter and confirm your new password.');
+      setError('Please enter and confirm your new password.');
       return;
     }
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
-      Alert.alert('Validation Error', 'Passwords do not match.');
       return;
     }
-     if (password.length < 8) {
-        setError('Password must be at least 8 characters long.');
-        Alert.alert('Validation Error', 'Password must be at least 8 characters long.');
-        return;
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      return;
     }
 
     setIsLoading(true);
-    setError(null);
 
     try {
-      // Call the service function directly
       const response = await authService.resetPassword(token, password);
       Alert.alert(
         'Success',
         response.data.message || 'Password reset successfully.',
-        [{ text: 'OK', onPress: () => navigation.navigate(routes.Login) }]
+        [{ text: 'Go to Login', onPress: () => navigation.navigate(routes.Login) }]
       );
     } catch (err) {
-      const message = err.message || 'Failed to reset password. The link might be invalid or expired.';
+      const message = err.message || 'Failed to reset password. The link might be invalid, expired, or already used.';
       setError(message);
-      Alert.alert('Error', message);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Reset Password</Text>
-      <Text style={styles.subtitle}>Enter your new password below.</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          <Image
+             // source={require('../../../assets/logo.png')}
+             style={styles.logo}
+             resizeMode="contain"
+           />
 
-      <ErrorMessage message={error} />
+          <Text style={styles.title}>Set New Password</Text>
+          <Text style={styles.subtitle}>
+            Create a new secure password for your account.
+          </Text>
 
-      <InputField
-        placeholder="New Password (min. 8 characters)"
-        value={password}
-        onChangeText={(text) => {
-            setPassword(text);
-            setError(null); // Clear error on input change
-        }}
-        secureTextEntry
-      />
-      <InputField
-        placeholder="Confirm New Password"
-        value={confirmPassword}
-        onChangeText={(text) => {
-            setConfirmPassword(text);
-            setError(null); // Clear error on input change
-        }}
-        secureTextEntry
-      />
+          <ErrorMessage message={error} containerStyle={styles.messageContainer} />
 
-      {isLoading ? (
-        <LoadingIndicator size="small" style={styles.loading} />
-      ) : (
-         <Button title="Reset Password" onPress={handleResetPassword} disabled={isLoading} style={styles.button} />
-      )}
+          <InputField
+            label="New Password"
+            placeholder="Enter new password"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              setError(null);
+            }}
+            secureTextEntry
+            hint="Minimum 8 characters"
+            error={!!error && (error.includes('least 8') || error.includes('match'))} // Highlight on relevant errors
+            returnKeyType="next"
+            containerStyle={styles.inputField}
+          />
+          <InputField
+            label="Confirm New Password"
+            placeholder="Confirm your new password"
+            value={confirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              setError(null);
+            }}
+            secureTextEntry
+            error={!!error && error.includes('match')} // Highlight on mismatch error
+            returnKeyType="done"
+            onSubmitEditing={handleResetPassword}
+            containerStyle={styles.inputField}
+          />
 
-      <TouchableOpacity onPress={() => !isLoading && navigation.navigate(routes.Login)}>
-        <Text style={styles.link}>Back to Login</Text>
-      </TouchableOpacity>
-    </View>
+          <Button
+             title="Set New Password"
+             onPress={handleResetPassword}
+             isLoading={isLoading}
+             style={styles.button}
+             />
+
+          <TouchableOpacity
+             style={styles.backLinkContainer}
+             onPress={() => !isLoading && navigation.navigate(routes.Login)}>
+            <Text style={styles.link}>Back to Login</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
+// Use similar styles as ForgotPasswordScreen
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: colors.background,
+    padding: theme.spacing.xl,
+  },
+   logo: {
+    width: 100,
+    height: 100,
+    marginBottom: theme.spacing.lg,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: colors.primary,
+    fontFamily: theme.typography.headingFontFamily,
+    fontSize: theme.typography.h2Size,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.md,
     textAlign: 'center',
   },
-    subtitle: {
-    fontSize: 16,
-    color: colors.muted,
+  subtitle: {
+    fontFamily: theme.typography.bodyFontFamily,
+    fontSize: theme.typography.bodySize,
+    color: theme.colors.muted,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.sm,
+  },
+  messageContainer: {
+      marginBottom: theme.spacing.md,
+  },
+  inputField: {
+    marginBottom: theme.spacing.lg,
   },
   button: {
     width: '100%',
-    marginTop: 8,
-    marginBottom: 16,
+    marginTop: theme.spacing.sm,
+    marginBottom: theme.spacing.lg,
+  },
+  backLinkContainer: {
+     marginTop: theme.spacing.md,
   },
   link: {
-    color: colors.primary,
-    marginTop: 12,
-    fontSize: 16,
-  },
-  loading: {
-    marginVertical: 20,
+    color: theme.colors.primary,
+    fontFamily: theme.typography.bodyFontFamily,
+    fontSize: theme.typography.smallSize,
+    textAlign: 'center',
   },
 });

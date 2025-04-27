@@ -22,13 +22,6 @@ const TAB_LABELS = {
 export default function CustomTabBar({ state, descriptors, navigation }) {
   return (
     <View style={styles.tabBarContainer}>
-      {/* Drawer Menu Icon */}
-      <TouchableOpacity
-        style={styles.menuIconContainer}
-        onPress={() => navigation.toggleDrawer && navigation.toggleDrawer()}
-      >
-        <Ionicons name="menu" size={28} color={styles.menuIcon?.color || '#333'} />
-      </TouchableOpacity>
       {/* Tabs */}
       <View style={styles.container}>
         {state.routes.map((route, index) => {
