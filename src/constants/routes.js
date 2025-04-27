@@ -1,0 +1,18 @@
+export default {
+  Splash: 'Splash',
+  Login: 'Login',
+  SignUp: 'SignUp',
+  ForgotPassword: 'ForgotPassword',
+  PasswordReset: 'PasswordReset',
+  Dashboard: 'Dashboard',
+  Chat: 'Chat',
+  Planner: 'Planner',
+  Mood: 'Mood',
+  Settings: 'Settings',
+  Profile: 'Profile',
+  ChangePassword: 'ChangePassword',
+  AddTask: 'AddTask',
+  TaskDetail: 'TaskDetail',
+  SessionList: 'SessionList',
+  MoodHistory: 'MoodHistory',
+};
