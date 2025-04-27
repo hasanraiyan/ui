@@ -41,7 +41,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     logout: (state) => {
-      state.isLoading = false;
+      state.isLoading = false; // Always stop loading on logout
       state.userToken = null;
       state.user = null;
       state.error = null;
@@ -51,7 +51,10 @@ const authSlice = createSlice({
     setCredentials: (state, action) => {
       state.user = action.payload.user;
       state.userToken = action.payload.userToken;
-      state.isLoading = false;
+      state.isLoading = false; // Always stop loading on successful credential set
+    },
+    setLoading: (state, action) => {
+      state.isLoading = action.payload;
     },
     clearAuthError: (state) => {
       state.error = null;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 import DashboardStack from './DashboardStack';
 import ChatStack from './ChatStack';
@@ -8,7 +8,6 @@ import PlannerStack from './PlannerStack';
 import MoodStack from './MoodStack';
 import SettingsStack from './SettingsStack';
 
-import routes from '../constants/routes';
 import colors from '../constants/colors';
 
 const Tab = createBottomTabNavigator();
