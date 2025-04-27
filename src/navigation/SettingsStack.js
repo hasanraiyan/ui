@@ -9,7 +9,7 @@ const Stack = createNativeStackNavigator();
 
 export default function SettingsStack() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name={routes.Settings} component={SettingsScreen} options={{ title: 'Settings' }} />
       <Stack.Screen name={routes.Profile} component={ProfileScreen} options={{ title: 'Profile' }} />
       <Stack.Screen name={routes.ChangePassword} component={ChangePasswordScreen} options={{ title: 'Change Password' }} />

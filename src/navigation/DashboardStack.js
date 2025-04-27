@@ -8,7 +8,7 @@ const Stack = createNativeStackNavigator();
 
 export default function DashboardStack() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name={routes.Dashboard} component={DashboardScreen} options={{ title: 'Dashboard' }} />
       {/* Add other screens here */}
     </Stack.Navigator>

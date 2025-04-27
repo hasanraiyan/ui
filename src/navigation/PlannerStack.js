@@ -9,7 +9,7 @@ const Stack = createNativeStackNavigator();
 
 export default function PlannerStack() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name={routes.Planner} component={PlannerScreen} options={{ title: 'Planner' }} />
       <Stack.Screen name={routes.AddTask} component={AddTaskScreen} options={{ presentation: 'modal', title: 'Add Task' }} />
       <Stack.Screen name={routes.TaskDetail} component={TaskDetailScreen} options={{ title: 'Task Details' }} />
