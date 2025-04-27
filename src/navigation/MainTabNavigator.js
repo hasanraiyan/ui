@@ -1,21 +1,47 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import DashboardScreen from '../screens/Dashboard/DashboardScreen';
-import ChatScreen from '../screens/Chat/ChatScreen';
-import PlannerScreen from '../screens/Planner/PlannerScreen';
-import MoodLoggingScreen from '../screens/Mood/MoodLoggingScreen';
-import SettingsScreen from '../screens/Settings/SettingsScreen';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
+import DashboardStack from './DashboardStack';
+import ChatStack from './ChatStack';
+import PlannerStack from './PlannerStack';
+import MoodStack from './MoodStack';
+import SettingsStack from './SettingsStack';
+
+import routes from '../constants/routes';
+import colors from '../constants/colors';
 
 const Tab = createBottomTabNavigator();
 
 export default function MainTabNavigator() {
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="Dashboard" component={DashboardScreen} />
-      <Tab.Screen name="Chat" component={ChatScreen} />
-      <Tab.Screen name="Planner" component={PlannerScreen} />
-      <Tab.Screen name="Mood" component={MoodLoggingScreen} />
-      <Tab.Screen name="Settings" component={SettingsScreen} />
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+          if (route.name === 'DashboardTab') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'ChatTab') {
+            iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
+          } else if (route.name === 'PlannerTab') {
+            iconName = focused ? 'calendar' : 'calendar-outline';
+          } else if (route.name === 'MoodTab') {
+            iconName = focused ? 'happy' : 'happy-outline';
+          } else if (route.name === 'SettingsTab') {
+            iconName = focused ? 'settings' : 'settings-outline';
+          }
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
+      })}
+    >
+      <Tab.Screen name="DashboardTab" component={DashboardStack} options={{ title: 'Home' }} />
+      <Tab.Screen name="ChatTab" component={ChatStack} options={{ title: 'Chat' }} />
+      <Tab.Screen name="PlannerTab" component={PlannerStack} options={{ title: 'Planner' }} />
+      <Tab.Screen name="MoodTab" component={MoodStack} options={{ title: 'Mood' }} />
+      <Tab.Screen name="SettingsTab" component={SettingsStack} options={{ title: 'Settings' }} />
     </Tab.Navigator>
   );
 }

@@ -23,6 +23,10 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "API_BASE_URL": "https://d-server-78cu.onrender.com/api"
+    },
+    "scheme": "dostify"
   }
 }
